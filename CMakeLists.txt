@@ -44,6 +44,7 @@ set(ORIG_SRCROOT ${PROJECT_SOURCE_DIR} CACHE STRING "Path to root of original pa
 set(PROVIDER_VERSION_STRING "" CACHE STRING "X.Y.Z formatted version of the provider")
 set(FIPS NO CACHE BOOL "Determine if this build is for FIPS mode")
 set(ALWAYS_ALLOW_EXTERNAL_LIB NO CACHE BOOL "Always permit tests to load ACCP shared objects from the library path")
+set(ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX "accp_")
 
 if (USE_CLANG_TIDY)
     # https://releases.llvm.org/9.0.0/tools/clang/tools/extra/docs/clang-tidy/checks/list.html
@@ -234,6 +235,7 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:amazonCorrettoCryptoProvider> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:accpLcLoader> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
+        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/mangle_libcrypto.sh ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/ ${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX}
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/tmplib/ com/amazon/corretto/crypto/provider/
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/generated-java/ com/amazon/corretto/crypto/provider/version.properties
         COMMAND ${CMAKE_COMMAND} -E copy ${ACCP_JAR_TMP} ${ACCP_JAR}
@@ -539,6 +541,7 @@ endif()
 
 # Pass in provider version
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROVIDER_VERSION_STRING=${PROVIDER_VERSION_STRING}")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAWSLC_MANGLE=${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX}")
 
 # CMake disallows leading or trailing whitespace here, but our concatenations will
 # leave us with leading whitespace, so strip it off first.
