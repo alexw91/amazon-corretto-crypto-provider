@@ -103,15 +103,22 @@ JNIEXPORT jboolean JNICALL Java_com_amazon_corretto_crypto_provider_Loader_loadL
         return JNI_FALSE;
     }
     const char* nativePath = pEnv->GetStringUTFChars(libPath, NULL);
-    void* libPtr = dlopen(nativePath, RTLD_LAZY | RTLD_GLOBAL);
+
+    fprintf(stderr, "About to dlopen: %s\n", nativePath);
+
+    void* libPtr = dlopen(nativePath, RTLD_NOW | RTLD_GLOBAL);
     // Immediately release the string regardless of if we were successful
     pEnv->ReleaseStringUTFChars(libPath, nativePath);
 
+    fprintf(stderr, "libPtr: %p\n", libPtr);
     if (libPtr == nullptr) {
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", dlerror());
         return JNI_FALSE;
     }
     char* loadError = libraryLoadError();
+
+    fprintf(stderr, "loadError: %s\n", loadError);
+
     if (loadError != nullptr) {
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", loadError);
         return JNI_FALSE;

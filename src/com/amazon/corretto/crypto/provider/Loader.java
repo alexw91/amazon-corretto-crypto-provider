@@ -3,6 +3,7 @@
 
 package com.amazon.corretto.crypto.provider;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -47,6 +48,7 @@ final class Loader {
     static final String PROPERTY_BASE = "com.amazon.corretto.crypto.provider.";
     private static final String LIBRARY_NAME = "amazonCorrettoCryptoProvider";
     private static final String LIBCRYPTO_NAME = "crypto";
+    private static final String MANGLED_LIBCRYPTO_NAME = "accp_private_libcrypto.so";
     private static final Pattern TEST_FILENAME_PATTERN = Pattern.compile("[-a-zA-Z0-9]+(\\.[a-zA-Z0-9]+)*");
     private static final Logger LOG = Logger.getLogger("AmazonCorrettoCryptoProvider");
 
@@ -127,7 +129,9 @@ final class Loader {
                 // doing, we cannot promise success.
                 FileSystems.getDefault();
 
-                final Path libCryptoPath = writeResourceToTemporaryFile(System.mapLibraryName(LIBCRYPTO_NAME));
+                writeJarResourceToDisk(MANGLED_LIBCRYPTO_NAME, new File("/home/ANT.AMAZON.COM/aweibel/jar-libcrypto.so").toPath());
+                final Path libCryptoPath = writeResourceToTemporaryFile(MANGLED_LIBCRYPTO_NAME);
+
                 tryLoadLibrary("accpLcLoader");
                 // Yes, this next bit is horribly evil but we need a way to lock such that it really is global to
                 // everything running in the JVM even if multiple classloaders have loaded multiple copies of this
@@ -187,16 +191,10 @@ final class Loader {
         }
     }
 
-    private static Path writeResourceToTemporaryFile(final String resourceName) throws IOException {
-        final int index = resourceName.lastIndexOf('.');
-        final String prefix = resourceName.substring(0, index);
-        final String suffix = resourceName.substring(index, resourceName.length());
-
-        final Path libPath = createTmpFile(prefix, suffix);
-
-        try (InputStream is = Loader.class.getResourceAsStream(resourceName);
-                OutputStream os = Files.newOutputStream(libPath, StandardOpenOption.CREATE,
-                        StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
+    private static void writeJarResourceToDisk(String jarResourceName, Path destPath) throws IOException {
+        try (InputStream is = Loader.class.getResourceAsStream(jarResourceName);
+             OutputStream os = Files.newOutputStream(destPath, StandardOpenOption.CREATE,
+                     StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
             final byte[] buffer = new byte[16 * 1024];
             int read = is.read(buffer);
             while (read >= 0) {
@@ -205,6 +203,15 @@ final class Loader {
             }
             os.flush();
         }
+    }
+
+    private static Path writeResourceToTemporaryFile(final String resourceName) throws IOException {
+        final int index = resourceName.lastIndexOf('.');
+        final String prefix = resourceName.substring(0, index);
+        final String suffix = resourceName.substring(index, resourceName.length());
+
+        final Path libPath = createTmpFile(prefix, suffix);
+        writeJarResourceToDisk(resourceName, libPath);
         return libPath;
     }
 

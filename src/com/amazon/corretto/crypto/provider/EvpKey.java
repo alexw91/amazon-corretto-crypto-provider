@@ -39,6 +39,7 @@ abstract class EvpKey implements Key, Destroyable {
         this.internalKey = key;
         this.type = type;
         this.isPublicKey = isPublicKey;
+        Loader.checkNativeLibraryAvailability();
     }
 
     boolean isEphemeral() {

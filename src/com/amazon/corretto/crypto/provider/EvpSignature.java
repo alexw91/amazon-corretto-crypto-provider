@@ -321,7 +321,6 @@ class EvpSignature extends EvpSignatureBase {
      */
     private EvpSignature(AmazonCorrettoCryptoProvider provider, final EvpKeyType keyType, final int paddingType, final String digestName) {
         super(provider, keyType, paddingType);
-        Loader.checkNativeLibraryAvailability();
         digestName_ = digestName;
 
         signingBuffer = new InputBuffer<byte[], EvpContext, RuntimeException>(1024)

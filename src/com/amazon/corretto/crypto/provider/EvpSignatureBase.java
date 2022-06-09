@@ -39,6 +39,7 @@ abstract class EvpSignatureBase extends SignatureSpi {
         provider_ = provider;
         keyType_ = keyType;
         paddingType_ = paddingType;
+        Loader.checkNativeLibraryAvailability();
     }
 
     protected abstract void engineReset();

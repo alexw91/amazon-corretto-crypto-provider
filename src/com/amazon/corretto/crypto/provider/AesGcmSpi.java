@@ -212,6 +212,7 @@ final class AesGcmSpi extends CipherSpi {
 
     AesGcmSpi(final AmazonCorrettoCryptoProvider provider) {
         this.provider = provider;
+        Loader.checkNativeLibraryAvailability();
     }
 
     @Override

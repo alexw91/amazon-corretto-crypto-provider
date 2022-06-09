@@ -44,6 +44,7 @@ abstract class EvpKeyFactory extends KeyFactorySpi {
         if (this.type == null) {
             throw new NullPointerException("Null type?!");
         }
+        Loader.checkNativeLibraryAvailability();
     }
 
     protected boolean shouldCheckPrivateKey() {
