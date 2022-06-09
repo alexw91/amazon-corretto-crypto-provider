@@ -1,0 +1,12 @@
+__do_global_dtors_aux
+__gmon_start__
+__pthread_atfork
+_ITM_deregisterTMCloneTable
+_ITM_registerTMCloneTable
+_fini
+_init
+deregister_tm_clones
+frame_dummy
+register_tm_clones
+sdallocx
+*@@GLIBC*

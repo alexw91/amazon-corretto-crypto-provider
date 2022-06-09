@@ -252,7 +252,7 @@ final class Loader {
 
     static void checkNativeLibraryAvailability() {
         if (!IS_AVAILABLE) {
-            throw new UnsupportedOperationException("Native library not available");
+            throw new UnsupportedOperationException("Native library not available", LOADING_ERROR);
         }
     }
 

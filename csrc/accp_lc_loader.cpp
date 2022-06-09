@@ -5,6 +5,9 @@
 #include "compiler.h" // This is minimal so is safe to include
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
 
 #ifndef AWSLC_MANGLE
 #define AWSLC_MANGLE
@@ -43,9 +46,51 @@ namespace {
     }
 }
 
+int accp_gdb_process_pid = 0;
+
+
+void exec_gdb()
+{
+    // Create child process for running GDB debugger
+    int pid = fork();
+
+    if (pid < 0) /* error */
+    {
+        abort();
+    }
+    else if (pid) /* parent */
+    {
+        // Application process
+        accp_gdb_process_pid = pid; // save debugger pid
+        sleep(10); /* Give GDB time to attach */
+
+        // Continue the application execution controlled by GDB
+    }
+    else /* child */
+    {
+        // GDB process. We run DDD GUI wrapper around GDB debugger
+        std::stringstream args;
+        args << "--pid=" << getppid();
+
+        std::stringstream pidStr;
+        pidStr << getppid();
+
+        //execl("/usr/bin/ddd", "ddd", "--debugger", "gdb", args.str().c_str(), (char *) 0);
+        execl("/usr/bin/gdbserver", "gdbserver", "127.0.0.1:11337", "--attach", pidStr.str().c_str(), (char *) 0);
+
+
+        // Get here only in case of DDD invocation failure
+        std::cerr << "\nFailed to exec GDB (DDD)\n" << std::endl;
+    }
+
+}
+
 JNIEXPORT jboolean JNICALL Java_com_amazon_corretto_crypto_provider_Loader_loadLibCrypto(
     JNIEnv* pEnv, jclass, jstring libPath)
 {
+
+//    exec_gdb();
+
     // Have we already loaded a properly mangled version of AWS-LC?
     if (libraryLoadError() == nullptr) {
         // Already loaded

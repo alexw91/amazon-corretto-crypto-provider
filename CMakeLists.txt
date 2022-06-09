@@ -91,6 +91,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 set(GENERATE_HASHERS ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/generate-java-hash-spi)
 set(GENERATED_JAVA_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated-java/com/amazon/corretto/crypto/provider)
 set(JNI_HEADER_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated-include)
+set(MANGLE_COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/mangle_libcrypto.sh)
+set(MANGLE_IGNORE_LIST ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/symbol_ignore_list.txt)
 
 ## Query our SPI generator to find out what output files it intends to generate.
 ## Note that this query runs at configure time...
@@ -235,7 +237,7 @@ else()
         COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:amazonCorrettoCryptoProvider> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:accpLcLoader> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
-        COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/build-tools/bin/mangle_libcrypto.sh ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/ ${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX}
+        COMMAND ${MANGLE_COMMAND} ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/ ${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX} ${MANGLE_IGNORE_LIST}
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/tmplib/ com/amazon/corretto/crypto/provider/
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/generated-java/ com/amazon/corretto/crypto/provider/version.properties
         COMMAND ${CMAKE_COMMAND} -E copy ${ACCP_JAR_TMP} ${ACCP_JAR}
@@ -543,6 +545,9 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROVIDER_VERSION_STRING=${PROVIDER_VERSION_STRING}")
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAWSLC_MANGLE=${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX}")
 
+# Debug Flags
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -ggdb -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+
 # CMake disallows leading or trailing whitespace here, but our concatenations will
 # leave us with leading whitespace, so strip it off first.
 string(STRIP "${PROBED_LINKED_FLAGS}" PROBED_LINKED_FLAGS)
@@ -784,6 +789,10 @@ add_custom_target(check-install-via-properties-with-debug
         com.amazon.corretto.crypto.provider.test.SecurityPropertyTester
 
     DEPENDS accp-jar tests-jar)
+
+#add_custom_target(gdb
+#    COMMAND gdb --args ${TEST_JAVA_EXECUTABLE} ${TEST_RUNNER_ARGUMENTS} --select-class=${SINGLE_TEST}
+#    DEPENDS accp-jar tests-jar)
 
 add_custom_target(check
     DEPENDS check-recursive-init check-install-via-properties check-install-via-properties-with-debug check-junit check-junit-SecurityManager check-external-lib)

@@ -10,6 +10,10 @@ import java.security.SecureRandomSpi;
  * A simple wrapper around the linked LibCrypto's RAND_bytes() API.
  */
 public class LibCryptoRng extends SecureRandom {
+    static {
+        Loader.load();
+    }
+
     private static final String ALGORITHM_NAME = "LibCryptoRng";
     private static final long serialVersionUID = 1L;
     private static final int MAX_SINGLE_REQUEST = 8192;
@@ -18,6 +22,7 @@ public class LibCryptoRng extends SecureRandom {
 
     public LibCryptoRng() {
         super(new SPI(), AmazonCorrettoCryptoProvider.INSTANCE);
+        Loader.checkNativeLibraryAvailability();
     }
 
     @Override
