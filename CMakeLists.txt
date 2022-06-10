@@ -546,7 +546,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DPROVIDER_VERSION_STRING=${PROVIDER_VER
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DAWSLC_MANGLE=${ACCP_LIBCRYPTO_SYMBOL_MANGLE_PREFIX}")
 
 # Debug Flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -ggdb -fno-omit-frame-pointer -fno-optimize-sibling-calls")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -ggdb -fno-omit-frame-pointer -fno-optimize-sibling-calls")
 
 # CMake disallows leading or trailing whitespace here, but our concatenations will
 # leave us with leading whitespace, so strip it off first.

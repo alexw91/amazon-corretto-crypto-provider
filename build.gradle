@@ -67,7 +67,6 @@ task buildAwsLc {
             args '-DBUILD_SHARED_LIBS=ON'
             args '-DCMAKE_BUILD_TYPE=RelWithDebInfo'
             args "-DCMAKE_INSTALL_PREFIX=${sharedObjectOutDir}"
-            args "-DCMAKE_CXX_FLAGS='-g3 -ggdb -fno-omit-frame-pointer -fno-optimize-sibling-calls'"
 
             if (isFips) {
                 args '-DFIPS=1'

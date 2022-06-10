@@ -39,9 +39,9 @@ namespace {
     // Returns nullptr if the library is properly loaded.
     // Otherwise returns a string containing the error seen when trying to access CANARY_FUNCTION_NAME.
     // This string does *not* need to be freed.
-    char* libraryLoadError() {
+    char* libraryLoadError(char const *canary_symbol) {
         dlerror();                                 // Clear errors
-        dlsym(RTLD_DEFAULT, CANARY_FUNCTION_NAME); // Return value doesn't matter
+        dlsym(RTLD_DEFAULT, canary_symbol); // Return value doesn't matter
         return dlerror();         // Did the lookup succeed?
     }
 }
@@ -92,7 +92,7 @@ JNIEXPORT jboolean JNICALL Java_com_amazon_corretto_crypto_provider_Loader_loadL
 //    exec_gdb();
 
     // Have we already loaded a properly mangled version of AWS-LC?
-    if (libraryLoadError() == nullptr) {
+    if (libraryLoadError((char*)CANARY_FUNCTION_NAME) == nullptr) {
         // Already loaded
         return JNI_FALSE; // We didn't do anything
     }
@@ -115,9 +115,12 @@ JNIEXPORT jboolean JNICALL Java_com_amazon_corretto_crypto_provider_Loader_loadL
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", dlerror());
         return JNI_FALSE;
     }
-    char* loadError = libraryLoadError();
 
-    fprintf(stderr, "loadError: %s\n", loadError);
+    char* loadError = libraryLoadError("CRYPTO_library_init");
+    fprintf(stderr, "CRYPTO_library_init loadError?: %s\n", loadError);
+
+    loadError = libraryLoadError((char*)CANARY_FUNCTION_NAME);
+    fprintf(stderr, "CANARY_FUNCTION_NAME loadError?: %s\n", loadError);
 
     if (loadError != nullptr) {
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", loadError);
