@@ -5,6 +5,9 @@
 #include "compiler.h" // This is minimal so is safe to include
 #include <dlfcn.h>
 #include <stdlib.h>
+#include <iostream>
+#include <sstream>
+#include <unistd.h>
 
 #ifndef AWSLC_MANGLE
 #define AWSLC_MANGLE
@@ -57,16 +60,26 @@ JNIEXPORT jboolean JNICALL Java_com_amazon_corretto_crypto_provider_Loader_loadL
         throw_java_exception(pEnv, "java/lang/NullPointerException", "Library file was null");
         return JNI_FALSE;
     }
-    const char* nativePath = pEnv->GetStringUTFChars(libPath, NULL);
-    void* libPtr = dlopen(nativePath, RTLD_LAZY | RTLD_GLOBAL);
-    // Immediately release the string regardless of if we were successful
-    pEnv->ReleaseStringUTFChars(libPath, nativePath);
 
+    const char* privateLibCryptoPath = pEnv->GetStringUTFChars(libPath, NULL);
+
+    fprintf(stderr, "About to dlopen: %s\n", privateLibCryptoPath);
+
+    void* libPtr = dlopen(privateLibCryptoPath, RTLD_LAZY | RTLD_LOCAL);
+    // Immediately release the string regardless of if we were successful
+    pEnv->ReleaseStringUTFChars(libPath, privateLibCryptoPath);
+
+
+    fprintf(stderr, "dlopen return val: %p\n", libPtr);
     if (libPtr == nullptr) {
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", dlerror());
         return JNI_FALSE;
     }
+
     char* loadError = libraryLoadError();
+
+    fprintf(stderr, "CRYPTO_library_init loadError?: %s\n", loadError);
+
     if (loadError != nullptr) {
         throw_java_exception(pEnv, "com/amazon/corretto/crypto/provider/RuntimeCryptoException", loadError);
         return JNI_FALSE;

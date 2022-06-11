@@ -127,13 +127,13 @@ final class Loader {
                 // doing, we cannot promise success.
                 FileSystems.getDefault();
 
-                final Path libCryptoPath = writeResourceToTemporaryFile(System.mapLibraryName(LIBCRYPTO_NAME));
-                tryLoadLibrary("accpLcLoader");
+                tryLoadLibrary(LIBRARY_NAME);
                 // Yes, this next bit is horribly evil but we need a way to lock such that it really is global to
                 // everything running in the JVM even if multiple classloaders have loaded multiple copies of this
                 // same class.
                 // We intentionally have nothing in this synchronized block except for a single method call.
                 boolean loadCompleted = false;
+                final Path libCryptoPath = writeResourceToTemporaryFile(System.mapLibraryName(LIBCRYPTO_NAME));
                 final String pathAsString = libCryptoPath.toAbsolutePath().toString();
                 synchronized (ClassLoader.getSystemClassLoader()) {
                     loadCompleted = loadLibCrypto(pathAsString);
@@ -142,8 +142,6 @@ final class Loader {
                 if (!loadCompleted) {
                     LOG.info("Already loaded libcrypto");
                 }
-
-                tryLoadLibrary(LIBRARY_NAME);
                 return true;
             });
         } catch (final Throwable t) {
@@ -188,6 +186,7 @@ final class Loader {
     }
 
     private static Path writeResourceToTemporaryFile(final String resourceName) throws IOException {
+        System.err.println("Attempting to write resource: " + resourceName);
         final int index = resourceName.lastIndexOf('.');
         final String prefix = resourceName.substring(0, index);
         final String suffix = resourceName.substring(index, resourceName.length());
@@ -232,7 +231,9 @@ final class Loader {
             // We failed to load the library from our JAR but don't know why.
             // Try to load it directly off of the system path.
             try {
+                System.err.println("Attempting to load " + LIBRARY_NAME + "...");
                 System.loadLibrary(libraryName);
+                System.err.println("Load Successful!: " + LIBRARY_NAME);
                 return;
             } catch (final Throwable suppressedError) {
                 loadingException.addSuppressed(suppressedError);
@@ -252,7 +253,7 @@ final class Loader {
 
     static void checkNativeLibraryAvailability() {
         if (!IS_AVAILABLE) {
-            throw new UnsupportedOperationException("Native library not available");
+            throw new UnsupportedOperationException("Native library not available", LOADING_ERROR);
         }
     }
 
