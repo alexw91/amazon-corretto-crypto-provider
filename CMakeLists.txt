@@ -233,7 +233,7 @@ else()
         COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy ${OPENSSL_CRYPTO_LIBRARY} ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:amazonCorrettoCryptoProvider> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
-#        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:accpLcLoader> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:accpLcLoader> ${CMAKE_CURRENT_BINARY_DIR}/tmplib/com/amazon/corretto/crypto/provider/
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/tmplib/ com/amazon/corretto/crypto/provider/
         COMMAND ${Java_JAR_EXECUTABLE} uf ${ACCP_JAR_TMP} -C ${CMAKE_CURRENT_BINARY_DIR}/generated-java/ com/amazon/corretto/crypto/provider/version.properties
         COMMAND ${CMAKE_COMMAND} -E copy ${ACCP_JAR_TMP} ${ACCP_JAR}
@@ -266,15 +266,14 @@ ADD_CUSTOM_COMMAND(
 ### Native library configuration
 include_directories(${OPENSSL_INCLUDE_DIR} ${JNI_INCLUDE_DIRS} ${JNI_HEADER_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/src/cpp)
 
-#add_library(
-#    accpLcLoader SHARED
-#        csrc/accp_lc_loader.cpp
-#        ${JNI_HEADER_DIR}/generated-headers.h
-#)
+add_library(
+    accpLcLoader SHARED
+        csrc/accp_lc_loader.cpp
+        ${JNI_HEADER_DIR}/generated-headers.h
+)
 
 add_library(
     amazonCorrettoCryptoProvider SHARED
-        csrc/accp_lc_loader.cpp
         csrc/aes_gcm.cpp
         csrc/agreement.cpp
         csrc/bn.cpp
@@ -374,7 +373,7 @@ CHECK_LIBRARY_EXISTS(m "sqrt" "" HAVE_LIBM)
 
 if(HAVE_LIBDL)
     target_link_libraries(amazonCorrettoCryptoProvider dl)
-#    target_link_libraries(accpLcLoader dl)
+    target_link_libraries(accpLcLoader dl)
 endif()
 
 if(HAVE_LIBM)
