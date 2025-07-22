@@ -7,7 +7,7 @@
 # to re-run a single test with:
 #
 # $ SINGLE_TEST=com.amazon.corretto.crypto.provider.test.EvpSignatureTest
-# $ ./gradlew minimal_clean && ./gradlew single_test -DSINGLE_TEST=${SINGLE_TEST}
+# $ ./gradlew minimal_clean && ./gradlew singleTest -DSINGLE_TEST=${SINGLE_TEST} && ./gradlew spotlessCheck
 
 FROM public.ecr.aws/ubuntu/ubuntu:20.04_stable
 
@@ -27,7 +27,9 @@ RUN echo 'export JAVA_HOME=/usr/lib/jvm/java-11-amazon-corretto/' >> /home/.bash
 RUN apt-get install -y build-essential \
     cmake \
     lcov \
-    python3-pip
+    python3-pip \
+    libxml2-dev \
+    libxslt-dev
 
 RUN pip3 install gcovr
 
